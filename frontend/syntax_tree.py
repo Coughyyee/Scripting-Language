@@ -1,6 +1,8 @@
 from typing import Literal
 
-NodeType = Literal["Program", "NumericLiteral", "Identifier", "BinaryExpr"]
+NodeType = Literal[
+    "Program", "NumericLiteral", "NullLiteral", "Identifier", "BinaryExpr"
+]
 
 
 class Stmt:
@@ -66,3 +68,13 @@ class Identifier(Expr):
     def __str__(self, level=0):
         indent = "  " * level
         return f"{indent}Identifier(symbol={self.symbol})"
+
+
+class NullLiteral(Expr):
+    def __init__(self):
+        super().__init__("NullLiteral")
+        self.value = "null"
+
+    def __str__(self, level=0):
+        indent = "  " * level
+        return f"{indent}NullLiteral(value={self.value})"

@@ -7,6 +7,7 @@ from frontend.syntax_tree import (
     BinaryExpr,
     NumericLiteral,
     Identifier,
+    NullLiteral
 )
 from frontend.lexer import tokenize, Token, TokenType
 
@@ -96,6 +97,9 @@ class Parser:
         match tk:
             case TokenType.IDENTIFIER:
                 return Identifier(self.eat().value)
+            case TokenType.NULL:
+                self.eat() # advance past null keyword
+                return NullLiteral()
             case TokenType.NUMBER:
                 return NumericLiteral(float(self.eat().value))
             case TokenType.OPENPAREN:

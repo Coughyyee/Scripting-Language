@@ -1,4 +1,5 @@
 from frontend.parser import Parser
+from runtime.interpreter import evaluate
 
 def repl():
     parser = Parser()
@@ -12,7 +13,10 @@ def repl():
             exit(1)
 
         program = parser.produceAST(inp)
-        print(program)
+        # print(program) # AST Tree
+
+        result = evaluate(program)
+        print(result)
 
 
 if __name__ == "__main__":
