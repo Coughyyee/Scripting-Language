@@ -1,13 +1,14 @@
 import sys
 from runtime.values import *
 from frontend.syntax_tree import *
+from runtime.environment import *
 
 
-def eval_program(program: Program) -> RuntimeVal:
-    lastEvaluated = NullVal()
+def eval_program(program: Program, env: Environment) -> RuntimeVal:
+    lastEvaluated = MK_NULL()
 
     for statement in program.body:
-        lastEvaluated = evaluate(statement)
+        lastEvaluated = evaluate(statement, env)
 
     return lastEvaluated
 
@@ -28,31 +29,36 @@ def eval_numeric_binary_expr(
     elif operator == "%":
         result = leftHandSide.value % rightHandSide.value
 
-    return NumberVal(result)
+    return MK_NUMBER(result)
 
 
-def eval_binary_expr(binop: BinaryExpr) -> RuntimeVal:
-    leftHandSide = evaluate(binop.left)
-    rightHandSide = evaluate(binop.right)
+def eval_binary_expr(binop: BinaryExpr, env: Environment) -> RuntimeVal:
+    leftHandSide = evaluate(binop.left, env)
+    rightHandSide = evaluate(binop.right, env)
 
     if leftHandSide.type == "number" and rightHandSide.type == "number":
         return eval_numeric_binary_expr(leftHandSide, rightHandSide, binop.operator)
 
     # One or both are NULL
-    return NullVal()
+    return MK_NULL()
 
 
-def evaluate(astNode: Stmt) -> RuntimeVal:
+def eval_identifier(ident: Identifier, env: Environment) -> RuntimeVal:
+    val = env.lookup_var(ident.symbol)
+    return val
+
+
+def evaluate(astNode: Stmt, env: Environment) -> RuntimeVal:
     match astNode.kind:
         case "NumericLiteral":
             if isinstance(astNode, NumericLiteral):
                 return NumberVal(astNode.value)
-        case "NullLiteral":
-            return NullVal()
+        case "Identifier":
+            return eval_identifier(astNode, env)
         case "BinaryExpr":
-            return eval_binary_expr(astNode)  # ?
+            return eval_binary_expr(astNode, env)
         case "Program":
-            return eval_program(astNode)  # ?
+            return eval_program(astNode, env)
         case _:
             print(
                 f"This AST Node has not yet been setup for interpretation.\n{astNode}",

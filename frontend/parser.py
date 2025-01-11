@@ -7,7 +7,6 @@ from frontend.syntax_tree import (
     BinaryExpr,
     NumericLiteral,
     Identifier,
-    NullLiteral
 )
 from frontend.lexer import tokenize, Token, TokenType
 
@@ -37,7 +36,7 @@ class Parser:
 
         return prev
 
-    def produceAST(self, sourceCode: str) -> Program:
+    def produce_ast(self, sourceCode: str) -> Program:
         self._tokens = tokenize(sourceCode)
         program = Program([])
 
@@ -97,9 +96,6 @@ class Parser:
         match tk:
             case TokenType.IDENTIFIER:
                 return Identifier(self.eat().value)
-            case TokenType.NULL:
-                self.eat() # advance past null keyword
-                return NullLiteral()
             case TokenType.NUMBER:
                 return NumericLiteral(float(self.eat().value))
             case TokenType.OPENPAREN:

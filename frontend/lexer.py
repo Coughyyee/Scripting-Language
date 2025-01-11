@@ -2,8 +2,9 @@ from enum import Enum, auto
 
 
 class TokenType(Enum):
+    """Token Types"""
+
     """Literal Types"""
-    NULL = auto()
     NUMBER = auto()
     IDENTIFIER = auto()
 
@@ -20,7 +21,6 @@ class TokenType(Enum):
 
 KEYWORDS = {
     "let": TokenType.LET,
-    "null": TokenType.NULL,
 }
 
 
@@ -69,7 +69,7 @@ def tokenize(sourceCode: str) -> list[Token]:
 
                 # Check for reserved keywords
                 reserved = KEYWORDS.get(ident, None)
-                if reserved: # ? Youtube -> typeof reserved == "number"
+                if reserved:  # ? Youtube -> typeof reserved == "number"
                     tokens.append(Token(ident, reserved))
                 else:
                     tokens.append(Token(ident, TokenType.IDENTIFIER))

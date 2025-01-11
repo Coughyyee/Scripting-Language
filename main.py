@@ -1,8 +1,18 @@
 from frontend.parser import Parser
 from runtime.interpreter import evaluate
+from runtime.environment import Environment
+from runtime.values import *
+
 
 def repl():
     parser = Parser()
+    env = Environment()
+    env.declare_var(
+        "x", MK_NUMBER(1000)
+    )  # Because we cant define variables in program just yet.
+    env.declare_var("true", MK_BOOL(True))
+    env.declare_var("false", MK_BOOL(False))
+    env.declare_var("null", MK_NULL())
 
     print("Repl v0.0.1")
     while True:
@@ -12,10 +22,10 @@ def repl():
         if not inp or inp.__contains__("exit"):
             exit(1)
 
-        program = parser.produceAST(inp)
+        program = parser.produce_ast(inp)
         # print(program) # AST Tree
 
-        result = evaluate(program)
+        result = evaluate(program, env)
         print(result)
 
 
