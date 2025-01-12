@@ -1,12 +1,26 @@
 from typing import Literal
 
-NodeType = Literal["Program", "NumericLiteral", "Identifier", "BinaryExpr"]
+NodeType = Literal[
+    # Statements
+    "Program",
+    "VarDeclaration"
+    # Expressions
+    "NumericLiteral",
+    "Identifier",
+    "BinaryExpr",
+]
 
 
 class Stmt:
     def __init__(self, kind: NodeType):
         self.kind = kind
 
+    def __str__(self, level=0):
+        indent = "  " * level
+        return f"{indent}{self.kind}"
+
+
+class Expr(Stmt):
     def __str__(self, level=0):
         indent = "  " * level
         return f"{indent}{self.kind}"
@@ -20,13 +34,26 @@ class Program(Stmt):
     def __str__(self, level=0):
         indent = "  " * level
         body_str = "\n".join(stmt.__str__(level + 1) for stmt in self.body)
-        return f"{indent}Program:\n{body_str}"
+        return f"{indent}{self.__class__.__name__}:\n{body_str}"
 
 
-class Expr(Stmt):
+class VarDeclaration(Stmt):
+    def __init__(self, constant: bool, identifier: str, value: Expr = None):
+        super().__init__("VarDeclaration")
+        self.constant = constant
+        self.identifier = identifier
+        self.value = value
+
     def __str__(self, level=0):
         indent = "  " * level
-        return f"{indent}{self.kind}"
+        value = self.value.__str__(level + 2)
+        return (
+            f"{indent}{self.__class__.__name__}:\n"
+            f"{indent}  Constant: {self.constant}\n"
+            f"{indent}  Identifier: {self.identifier}\n"
+            f"{indent}  Value:\n"
+            f"{indent}{value}\n"
+        )
 
 
 class BinaryExpr(Expr):
@@ -41,7 +68,7 @@ class BinaryExpr(Expr):
         left_str = self.left.__str__(level + 2)
         right_str = self.right.__str__(level + 2)
         return (
-            f"{indent}BinaryExpr:\n"
+            f"{indent}{self.__class__.__name__}:\n"
             f"{indent}  Operator: {self.operator}\n"
             f"{indent}  Left:\n{left_str}\n"
             f"{indent}  Right:\n{right_str}"
@@ -55,7 +82,7 @@ class NumericLiteral(Expr):
 
     def __str__(self, level=0):
         indent = "  " * level
-        return f"{indent}NumericLiteral(value={self.value})"
+        return f"{indent}{self.__class__.__name__}(value={self.value})"
 
 
 class Identifier(Expr):
@@ -65,4 +92,4 @@ class Identifier(Expr):
 
     def __str__(self, level=0):
         indent = "  " * level
-        return f"{indent}Identifier(symbol={self.symbol})"
+        return f"{indent}{self.__class__.__name__}(symbol={self.symbol})"

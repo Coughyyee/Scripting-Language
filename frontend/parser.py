@@ -1,13 +1,6 @@
 import sys
 
-from frontend.syntax_tree import (
-    Stmt,
-    Program,
-    Expr,
-    BinaryExpr,
-    NumericLiteral,
-    Identifier,
-)
+from frontend.syntax_tree import *
 from frontend.lexer import tokenize, Token, TokenType
 
 
@@ -27,9 +20,9 @@ class Parser:
 
     def expect(self, type: TokenType, err):
         prev = self._tokens.pop(0)
-        if not prev or prev.type is not type:
+        if prev is None or prev.type != type:
             print(
-                f"Parser Error:\n{err}{prev}Expecting: {type}",
+                f"Parser Error:\n  {err}\n  {prev} -> Expecting: {type}",
                 file=sys.stderr,
             )
             exit(1)
@@ -47,8 +40,47 @@ class Parser:
         return program
 
     def parse_stmt(self) -> Stmt:
-        # Skip to parse_expr
-        return self.parse_expr()
+        match self.at().type:
+            case TokenType.LET:
+                return self.parse_var_declaration()
+            case TokenType.CONST:
+                return self.parse_var_declaration()
+            case _:
+                return self.parse_expr()
+
+    # ( LET ) IDENT;
+    # ( CONST | LET ) IDENT = EXPR;
+    def parse_var_declaration(
+        self,
+    ) -> Stmt:
+        is_constant = self.eat().type == TokenType.CONST
+        identifier = self.expect(
+            TokenType.IDENTIFIER,
+            "Expected identifier name following <let | const> keyword.",
+        ).value
+
+        if self.at().type == TokenType.SEMICOLON:
+            self.eat()  # expect semicolon.
+            if is_constant:
+                raise ValueError(
+                    "Must assign value to constant expression. No value provided."
+                )
+
+            return VarDeclaration(False, identifier)
+
+        self.expect(
+            TokenType.EQUALS,
+            "Expected equals token following identifier in var declaration.",
+        )
+
+        declaration = VarDeclaration(is_constant, identifier, self.parse_expr())
+
+        self.expect(
+            TokenType.SEMICOLON,
+            "Variable declaration statement must end with a semicolon.",
+        )
+
+        return declaration
 
     def parse_expr(self) -> Expr:
         return self.parse_additive_expr()

@@ -1,26 +1,31 @@
 from enum import Enum, auto
+from util.printer import value_print
 
 
+# Language Token Types
 class TokenType(Enum):
-    """Token Types"""
 
-    """Literal Types"""
+    # Literal Types
     NUMBER = auto()
     IDENTIFIER = auto()
 
-    """Keywords"""
+    # Keywords
     LET = auto()
+    CONST = auto()
 
-    """Grouping * Operators"""
+    # Grouping * Operators
     BINARYOPERATOR = auto()
     EQUALS = auto()
+    SEMICOLON = auto()
     OPENPAREN = auto()
     CLOSEPAREN = auto()
     EOF = auto()  # Signifies the end of file
 
 
+# Language Keywords
 KEYWORDS = {
     "let": TokenType.LET,
+    "const": TokenType.CONST,
 }
 
 
@@ -30,7 +35,7 @@ class Token:
         self.type = type
 
     def __str__(self):
-        return f"< value: {self.value}, type: {self.type} >"
+        return value_print(self.__class__.__name__, self.value, self.type)
 
 
 def tokenize(sourceCode: str) -> list[Token]:
@@ -52,6 +57,8 @@ def tokenize(sourceCode: str) -> list[Token]:
             tokens.append(Token(src.pop(0), TokenType.BINARYOPERATOR))
         elif src[0] == "=":
             tokens.append(Token(src.pop(0), TokenType.EQUALS))
+        elif src[0] == ";":
+            tokens.append(Token(src.pop(0), TokenType.SEMICOLON))
         else:
             # Multi-Character Tokens
 
