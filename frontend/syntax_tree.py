@@ -6,9 +6,12 @@ NodeType = Literal[
     "VarDeclaration",
     # Expressions
     "AssignmentExpr",
+    "BinaryExpr",
+    # Literals
+    "PropertyLiteral",
+    "ObjectLiteral",
     "NumericLiteral",
     "Identifier",
-    "BinaryExpr",
 ]
 
 
@@ -50,13 +53,17 @@ class VarDeclaration(Stmt):
 
     def __str__(self, level=0):
         indent = "  " * level
-        value = self.value.__str__(level + 2)
+        value_str = (
+            self.value.__str__(level + 2)
+            if self.value
+            else f"{"  " * (level + 2)}<undefined>"  #! Change this to null or something?
+        )
         return (
             f"{indent}{self.__class__.__name__}:\n"
             f"{indent}  Constant: {self.constant}\n"
             f"{indent}  Identifier: {self.identifier}\n"
             f"{indent}  Value:\n"
-            f"{indent}{value}\n"
+            f"{indent}{value_str}\n"
         )
 
 
@@ -97,6 +104,37 @@ class BinaryExpr(Expr):
             f"{indent}  Left:\n{left_str}\n"
             f"{indent}  Right:\n{right_str}"
         )
+
+
+class PropertyLiteral(Expr):
+    def __init__(self, key: str, value: Expr = None):
+        super().__init__("PropertyLiteral")
+        self.key = key
+        self.value = value
+
+    def __str__(self, level=0):
+        indent = "  " * level
+        value_str = (
+            self.value.__str__(level + 2)
+            if self.value
+            else f"{"  " * (level + 2)}<undefined>"  #! Change this to null or something?
+        )
+        return (
+            f"{indent}{self.__class__.__name__}:\n"
+            f"{indent}  Key: '{self.key}'\n"
+            f"{indent}  Value:\n{value_str}"
+        )
+
+
+class ObjectLiteral(Expr):
+    def __init__(self, properties: list[PropertyLiteral]):
+        super().__init__("ObjectLiteral")
+        self.properties = properties
+
+    def __str__(self, level=0):
+        indent = "  " * level
+        prop_str = "\n".join(prop.__str__(level + 1) for prop in self.properties)
+        return f"{indent}{self.__class__.__name__}:\n{prop_str}"
 
 
 class NumericLiteral(Expr):

@@ -102,7 +102,7 @@ class Parser:
 
     # let x = 10; x = 20;
     def parse_assignment_expr(self) -> Expr:
-        left = self.parse_additive_expr()  # Switch this out with objectExpr (Future)
+        left = self.parse_object_expr()
 
         if self.at().type == TokenType.EQUALS:
             self.eat()  # advance past equals
@@ -114,6 +114,47 @@ class Parser:
             return AssignmentExpr(left, value)
 
         return left
+
+    # { Prop[] }
+    def parse_object_expr(self) -> Expr:
+        if self.at().type != TokenType.OPENBRACE:
+            return self.parse_additive_expr()
+
+        self.eat()  # advances past the open brace.
+        properties = []
+
+        while self.not_eof() and self.at().type != TokenType.CLOSEBRACE:
+            # { key: val, key2: val2 } <,> optional
+
+            key = self.expect(
+                TokenType.IDENTIFIER, "Object literal key expected."
+            ).value
+
+            # Allows shorthand key: pair -> { key, }
+            if self.at().type == TokenType.COMMA:
+                self.eat()  # advance past the comma
+                properties.append(PropertyLiteral(key, None))
+                continue
+            # Allows shorthand key: pair -> { key }
+            elif self.at().type == TokenType.CLOSEBRACE:
+                properties.append(PropertyLiteral(key, None))
+                continue
+
+            # { key: val }
+            self.expect(
+                TokenType.COLON, "Missing colon following identifier in ObjectExpr."
+            )
+            value = self.parse_expr()  # let any kind of value be on the RHS.
+
+            properties.append(PropertyLiteral(key, value))
+            if self.at().type != TokenType.CLOSEBRACE:
+                self.expect(
+                    TokenType.COMMA,
+                    "Expected comma or closing brace following propery.",
+                )
+
+        self.expect(TokenType.CLOSEBRACE, "Object literal missing closing brace.")
+        return ObjectLiteral(properties)
 
     # 10 + 5 - 5 -> ((10 + 5) - 5)
     def parse_additive_expr(self) -> Expr:

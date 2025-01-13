@@ -1,6 +1,6 @@
-from frontend.syntax_tree import AssignmentExpr, BinaryExpr, Identifier
+from frontend.syntax_tree import AssignmentExpr, BinaryExpr, Identifier, ObjectLiteral
 from runtime.environment import Environment
-from runtime.values import MK_NULL, MK_NUMBER, NumberVal, RuntimeVal
+from runtime.values import MK_NULL, MK_NUMBER, NumberVal, ObjectVal, RuntimeVal
 
 
 def eval_numeric_binary_expr(
@@ -49,3 +49,18 @@ def eval_assignment(node: AssignmentExpr, env: Environment) -> RuntimeVal:
     if isinstance(node.assigne, Identifier):
         varname = node.assigne.symbol
     return env.assign_var(varname, evaluate(node.value, env))
+
+
+def eval_object_expr(obj_lit: ObjectLiteral, env: Environment) -> RuntimeVal:
+    from runtime.interpreter import evaluate
+
+    obj = ObjectVal({})
+    for prop in obj_lit.properties:
+        key = prop.key
+        value = prop.value
+        # { foo } == { foo: foo }
+        runtime_val = env.lookup_var(key) if value is None else evaluate(value, env)
+
+        obj.properties[key] = runtime_val
+
+    return obj

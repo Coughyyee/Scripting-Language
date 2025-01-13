@@ -16,9 +16,13 @@ class TokenType(Enum):
     # Grouping * Operators
     BINARYOPERATOR = auto()
     EQUALS = auto()
+    COMMA = auto()
+    COLON = auto()
     SEMICOLON = auto()
     OPENPAREN = auto()
     CLOSEPAREN = auto()
+    OPENBRACE = auto()
+    CLOSEBRACE = auto()
     EOF = auto()  # Signifies the end of file
 
 
@@ -47,6 +51,10 @@ def tokenize(sourceCode: str) -> list[Token]:
             tokens.append(Token(src.pop(0), TokenType.OPENPAREN))
         elif src[0] == ")":
             tokens.append(Token(src.pop(0), TokenType.CLOSEPAREN))
+        elif src[0] == "{":
+            tokens.append(Token(src.pop(0), TokenType.OPENBRACE))
+        elif src[0] == "}":
+            tokens.append(Token(src.pop(0), TokenType.CLOSEBRACE))
         elif (
             src[0] == "+"
             or src[0] == "-"
@@ -59,10 +67,12 @@ def tokenize(sourceCode: str) -> list[Token]:
             tokens.append(Token(src.pop(0), TokenType.EQUALS))
         elif src[0] == ";":
             tokens.append(Token(src.pop(0), TokenType.SEMICOLON))
+        elif src[0] == ",":
+            tokens.append(Token(src.pop(0), TokenType.COMMA))
+        elif src[0] == ":":
+            tokens.append(Token(src.pop(0), TokenType.COLON))
         else:
             # Multi-Character Tokens
-
-            # Build number token
             if src[0].isnumeric():
                 num = ""
                 while len(src) > 0 and src[0].isnumeric():
@@ -88,12 +98,3 @@ def tokenize(sourceCode: str) -> list[Token]:
 
     tokens.append(Token("EOF", TokenType.EOF))
     return tokens
-
-
-"""
-Read File Content
-"""
-# with open("./test.txt", "r") as file:
-#     source = file.read()
-#     for token in tokenize(source):
-#         print(token)

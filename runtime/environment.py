@@ -1,7 +1,4 @@
-from runtime.values import RuntimeVal
-
-
-"""IDK if i should keep it as ValueError(..) or not."""
+from runtime.values import MK_BOOL, MK_NULL, RuntimeVal
 
 
 class Environment:
@@ -28,7 +25,9 @@ class Environment:
 
         # Cannot assign to constatn
         if varname in env._constants:
-            raise ValueError(f"Cannot reassign to variable {varname} as it was declared as constant.")
+            raise ValueError(
+                f"Cannot reassign to variable {varname} as it was declared as constant."
+            )
 
         env._variables[varname] = value
         return value
@@ -45,3 +44,13 @@ class Environment:
             raise ValueError(f"Cannot resolve <{varname}> as it does not exist.")
 
         return self._parent.resolve(varname)
+
+
+def create_global_env() -> Environment:
+    env = Environment()
+
+    env.declare_var("true", MK_BOOL(True), True)
+    env.declare_var("false", MK_BOOL(False), False)
+    env.declare_var("null", MK_NULL(), True)
+
+    return env
