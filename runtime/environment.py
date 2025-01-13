@@ -28,7 +28,7 @@ class Environment:
 
         # Cannot assign to constatn
         if varname in env._constants:
-            raise f"Cannot reassign to variable {varname} as it was declared as constant."
+            raise ValueError(f"Cannot reassign to variable {varname} as it was declared as constant.")
 
         env._variables[varname] = value
         return value

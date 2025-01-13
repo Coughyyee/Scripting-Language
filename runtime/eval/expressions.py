@@ -1,4 +1,4 @@
-from frontend.syntax_tree import BinaryExpr, Identifier
+from frontend.syntax_tree import AssignmentExpr, BinaryExpr, Identifier
 from runtime.environment import Environment
 from runtime.values import MK_NULL, MK_NUMBER, NumberVal, RuntimeVal
 
@@ -38,3 +38,14 @@ def eval_binary_expr(binop: BinaryExpr, env: Environment) -> RuntimeVal:
 def eval_identifier(ident: Identifier, env: Environment) -> RuntimeVal:
     val = env.lookup_var(ident.symbol)
     return val
+
+
+def eval_assignment(node: AssignmentExpr, env: Environment) -> RuntimeVal:
+    from runtime.interpreter import evaluate
+
+    if node.assigne.kind != "Identifier":
+        raise ValueError(f"Invalid LHS inaide assignment expr {node.assigne}")
+
+    if isinstance(node.assigne, Identifier):
+        varname = node.assigne.symbol
+    return env.assign_var(varname, evaluate(node.value, env))

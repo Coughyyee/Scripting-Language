@@ -39,6 +39,8 @@ class Parser:
 
         return program
 
+    """ Parsing """
+
     def parse_stmt(self) -> Stmt:
         match self.at().type:
             case TokenType.LET:
@@ -82,12 +84,9 @@ class Parser:
 
         return declaration
 
-    def parse_expr(self) -> Expr:
-        return self.parse_additive_expr()
-
     """
     Orders of Prescidence:
-        AssignmentExpr
+        AssignmentExpr <- Lowest Order
         MemberExpr
         FunctionCall
         LogicalExpr
@@ -95,8 +94,26 @@ class Parser:
         AdditiveExpr
         MultiplicitaveExpr
         UnaryExpr
-        PrimaryExpr
+        PrimaryExpr <- Highest Order
     """
+
+    def parse_expr(self) -> Expr:
+        return self.parse_assignment_expr()  # Lowest order of prescidence
+
+    # let x = 10; x = 20;
+    def parse_assignment_expr(self) -> Expr:
+        left = self.parse_additive_expr()  # Switch this out with objectExpr (Future)
+
+        if self.at().type == TokenType.EQUALS:
+            self.eat()  # advance past equals
+            value = (
+                self.parse_assignment_expr()
+            )  # | x = foo = bar <- assignment chaining
+            if self.at().type == TokenType.SEMICOLON:
+                self.eat()  # eats semi colon if there is one
+            return AssignmentExpr(left, value)
+
+        return left
 
     # 10 + 5 - 5 -> ((10 + 5) - 5)
     def parse_additive_expr(self) -> Expr:

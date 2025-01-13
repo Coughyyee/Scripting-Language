@@ -1,1 +1,4 @@
-let x = 44 * ( 4/ 2 )
+let x = 10;
+let y = 20;
+let z = x * y;
+const f = 5345345345345;

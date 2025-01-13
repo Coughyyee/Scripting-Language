@@ -3,8 +3,9 @@ from typing import Literal
 NodeType = Literal[
     # Statements
     "Program",
-    "VarDeclaration"
+    "VarDeclaration",
     # Expressions
+    "AssignmentExpr",
     "NumericLiteral",
     "Identifier",
     "BinaryExpr",
@@ -24,6 +25,9 @@ class Expr(Stmt):
     def __str__(self, level=0):
         indent = "  " * level
         return f"{indent}{self.kind}"
+
+
+"""Statements"""
 
 
 class Program(Stmt):
@@ -53,6 +57,26 @@ class VarDeclaration(Stmt):
             f"{indent}  Identifier: {self.identifier}\n"
             f"{indent}  Value:\n"
             f"{indent}{value}\n"
+        )
+
+
+"""Expressions"""
+
+
+class AssignmentExpr(Expr):
+    def __init__(self, assigne: Expr, value: Expr):
+        super().__init__("AssignmentExpr")
+        self.assigne = assigne
+        self.value = value
+
+    def __str__(self, level=0):
+        indent = "  " * level
+        assigne_str = self.assigne.__str__(level + 2)
+        value_str = self.value.__str__(level + 2)
+        return (
+            f"{indent}{self.__class__.__name__}:\n"
+            f"{indent}  Assigne:\n{assigne_str}\n"
+            f"{indent}  Value:\n{value_str}"
         )
 
 
