@@ -7,10 +7,13 @@ NodeType = Literal[
     # Expressions
     "AssignmentExpr",
     "BinaryExpr",
+    "MemberExpr",
+    "CallExpr",
     # Literals
     "PropertyLiteral",
     "ObjectLiteral",
     "NumericLiteral",
+    #
     "Identifier",
 ]
 
@@ -106,9 +109,49 @@ class BinaryExpr(Expr):
         )
 
 
+class MemberExpr(Expr):
+    def __init__(self, obj: Expr, prop: Expr, computed: bool):
+        super().__init__(self.__class__.__name__)
+        self.obj = obj  # ?
+        self.prop = prop
+        self.computed = computed
+
+    def __str__(self, level=0):
+        indent = "  " * level
+        obj_str = self.obj.__str__(level + 2)
+        prop_str = self.prop.__str__(level + 2)
+        return (
+            f"{indent}{self.__class__.__name__}:\n"
+            f"{indent}  Computed: {self.computed}\n"
+            f"{indent}  obj:\n{obj_str}\n"
+            f"{indent}  prop:\n{prop_str}"
+        )
+
+
+class CallExpr(Expr):
+    def __init__(self, args: list[Expr], caller: Expr):
+        super().__init__(self.__class__.__name__)
+        self.args = args
+        self.caller = caller
+
+    def __str__(self, level=0):
+        indent = "  " * level
+        args_str = (
+            "\n".join(arg.__str__(level + 2) for arg in self.args)
+            if len(self.args) > 0
+            else f"{indent}    <empty>"
+        )
+        caller_str = self.caller.__str__(level + 2)
+        return (
+            f"{indent}{self.__class__.__name__}:\n"
+            f"{indent}  Args:\n{args_str}\n"
+            f"{indent}  Caller:\n{caller_str}"
+        )
+
+
 class PropertyLiteral(Expr):
     def __init__(self, key: str, value: Expr = None):
-        super().__init__("PropertyLiteral")
+        super().__init__(self.__class__.__name__)
         self.key = key
         self.value = value
 
@@ -128,7 +171,7 @@ class PropertyLiteral(Expr):
 
 class ObjectLiteral(Expr):
     def __init__(self, properties: list[PropertyLiteral]):
-        super().__init__("ObjectLiteral")
+        super().__init__(self.__class__.__name__)
         self.properties = properties
 
     def __str__(self, level=0):
@@ -139,7 +182,7 @@ class ObjectLiteral(Expr):
 
 class NumericLiteral(Expr):
     def __init__(self, value: float):
-        super().__init__("NumericLiteral")
+        super().__init__(self.__class__.__name__)
         self.value = value
 
     def __str__(self, level=0):
@@ -149,7 +192,7 @@ class NumericLiteral(Expr):
 
 class Identifier(Expr):
     def __init__(self, symbol: str):
-        super().__init__("Identifier")
+        super().__init__(self.__class__.__name__)
         self.symbol = symbol
 
     def __str__(self, level=0):

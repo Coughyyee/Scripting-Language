@@ -86,15 +86,15 @@ class Parser:
 
     """
     Orders of Prescidence:
-        AssignmentExpr <- Lowest Order
-        MemberExpr
-        FunctionCall
-        LogicalExpr
-        ComparisonExpr
-        AdditiveExpr
-        MultiplicitaveExpr
-        UnaryExpr
-        PrimaryExpr <- Highest Order
+        AssignmentExpr (x = y, x += y, x -= y)
+        LogicalExpr (x && y, x || y)
+        ComparisonExpr (x == y, x != y, x < y, x > y)
+        AdditiveExpr (x + y, x - y)
+        MultiplicativeExpr (x * y, x / y, x % y)
+        UnaryExpr (-x, !x, ~x)
+        MemberExpr (object.property, array[index])
+        FunctionCall (function(arg1, arg2), obj.method())
+        PrimaryExpr (123, x, (x + y))
     """
 
     def parse_expr(self) -> Expr:
@@ -169,16 +169,88 @@ class Parser:
 
     # 10-5*10 -> (10 - (5 * 10)) | Order of operation - BIDMAS/BODMAS
     def parse_multiplicitave_expr(self) -> Expr:
-        left = self.parse_primary_expr()
+        left = self.parse_call_member_expr()
 
         while (
             self.at().value == "/" or self.at().value == "*" or self.at().value == "%"
         ):
             operator = self.eat().value
-            right = self.parse_primary_expr()
+            right = self.parse_call_member_expr()
             left = BinaryExpr(left, right, operator)
 
         return left
+
+    # foo.x()
+    def parse_call_member_expr(self) -> Expr:
+        member = self.parse_member_expr()
+
+        if self.at().type == TokenType.OPENPAREN:
+            return self.parse_call_expr(member)
+
+        return member
+
+    def parse_call_expr(self, caller: Expr) -> Expr:
+        call_expr = CallExpr(self.parse_args(), caller)
+
+        # foo.x()() - if foo.x() returns a func
+        if self.at().type == TokenType.OPENPAREN:
+            call_expr = self.parse_call_expr(call_expr)
+
+        return call_expr
+
+    # fn add(x, y) <- x,y are parameters, theyre variables.
+    # add(10, foo()) <- these are arguments, we are calling add() - args are just expressions.
+    def parse_args(self) -> list[Expr]:
+        self.expect(TokenType.OPENPAREN, "Expected open parenthesis")
+        args = (
+            []
+            if self.at().type == TokenType.CLOSEPAREN
+            else self.parse_arguments_list()
+        )
+
+        self.expect(
+            TokenType.CLOSEPAREN, "Missing closing parenthesis inside arguments list"
+        )
+        return args
+
+    # foo(x = 5, v = "Bar")
+    def parse_arguments_list(self) -> list[Expr]:
+        args = [self.parse_assignment_expr()]
+
+        while self.at().type == TokenType.COMMA and self.eat():  # ? self.eat() is None?
+            args.append(self.parse_assignment_expr())
+
+        return args
+
+    def parse_member_expr(self) -> Expr:
+        obj = self.parse_primary_expr()
+
+        while (
+            self.at().type == TokenType.DOT or self.at().type == TokenType.OPENBRACKET
+        ):
+            operator = self.eat()
+            prop: Expr
+            computed: bool
+
+            # non-computed values aka obj.expr
+            if operator.type == TokenType.DOT:
+                computed = False
+                prop = self.parse_primary_expr()  # get identifier
+
+                if prop.kind != "Identifier":
+                    raise ValueError(
+                        f"Cannot use dot operator without right hand side being an identifier"
+                    )
+            else:  # allows obj[computed_value]
+                computed = True
+                prop = self.parse_expr()
+                self.expect(
+                    TokenType.CLOSEBRACKET, "Missing closing bracket in computed value."
+                )
+
+            obj = MemberExpr(obj, prop, computed)
+
+        return obj
 
     def parse_primary_expr(self) -> Expr:
         tk = self.at().type

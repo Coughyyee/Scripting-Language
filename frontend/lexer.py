@@ -17,12 +17,15 @@ class TokenType(Enum):
     BINARYOPERATOR = auto()
     EQUALS = auto()
     COMMA = auto()
+    DOT = auto()
     COLON = auto()
     SEMICOLON = auto()
-    OPENPAREN = auto()
-    CLOSEPAREN = auto()
-    OPENBRACE = auto()
-    CLOSEBRACE = auto()
+    OPENPAREN = auto()  # (
+    CLOSEPAREN = auto()  # )
+    OPENBRACE = auto()  # {
+    CLOSEBRACE = auto()  # }
+    OPENBRACKET = auto()  # [
+    CLOSEBRACKET = auto()  # ]
     EOF = auto()  # Signifies the end of file
 
 
@@ -55,6 +58,10 @@ def tokenize(sourceCode: str) -> list[Token]:
             tokens.append(Token(src.pop(0), TokenType.OPENBRACE))
         elif src[0] == "}":
             tokens.append(Token(src.pop(0), TokenType.CLOSEBRACE))
+        elif src[0] == "[":
+            tokens.append(Token(src.pop(0), TokenType.OPENBRACKET))
+        elif src[0] == "]":
+            tokens.append(Token(src.pop(0), TokenType.CLOSEBRACKET))
         elif (
             src[0] == "+"
             or src[0] == "-"
@@ -67,10 +74,12 @@ def tokenize(sourceCode: str) -> list[Token]:
             tokens.append(Token(src.pop(0), TokenType.EQUALS))
         elif src[0] == ";":
             tokens.append(Token(src.pop(0), TokenType.SEMICOLON))
-        elif src[0] == ",":
-            tokens.append(Token(src.pop(0), TokenType.COMMA))
         elif src[0] == ":":
             tokens.append(Token(src.pop(0), TokenType.COLON))
+        elif src[0] == ",":
+            tokens.append(Token(src.pop(0), TokenType.COMMA))
+        elif src[0] == ".":
+            tokens.append(Token(src.pop(0), TokenType.DOT))
         else:
             # Multi-Character Tokens
             if src[0].isnumeric():
